@@ -2,6 +2,7 @@ from keras.layers import Input, Dense, GRU, Dropout, BatchNormalization, \
                          MaxPooling1D, Conv1D, Flatten, Concatenate, PReLU
 from keras.models import Model
 from keras import metrics
+from keras import optimizers
 from magpie.config import SAMPLE_LENGTH
 
 
@@ -43,10 +44,10 @@ def cnn(embedding_size, output_length):
     outputs = Dense(output_length, activation='softmax')(flattened)
 
     model = Model(inputs=inputs, outputs=outputs)
-
+    sgd = optimizers.SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(
         loss='categorical_crossentropy',
-        optimizer='adam',
+        optimizer=sgd,
         metrics=[metrics.categorical_accuracy],
     )
 
