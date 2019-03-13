@@ -29,8 +29,8 @@ def cnn(embedding_size, output_length):
         convolution = Conv1D(
             NB_FILTER,
             ngram_length,
-            kernel_initializer='lecun_uniform',
-            activation='tanh',
+            kernel_initializer='he_uniform',
+            activation='relu',
         )(current_input)
 
         pool_size = SAMPLE_LENGTH - ngram_length + 1
@@ -40,12 +40,12 @@ def cnn(embedding_size, output_length):
     merged = Concatenate()(conv_layers)
     dropout = Dropout(0.5)(merged)
     flattened = Flatten()(dropout)
-    outputs = Dense(output_length, activation='sigmoid')(flattened)
+    outputs = Dense(output_length, activation='softmax')(flattened)
 
     model = Model(inputs=inputs, outputs=outputs)
 
     model.compile(
-        loss='binary_crossentropy',
+        loss='categorical_crossentropy',
         optimizer='adam',
         metrics=[metrics.categorical_accuracy],
     )
