@@ -1,7 +1,7 @@
 from keras.layers import Input, Dense, GRU, Dropout, BatchNormalization, \
                          MaxPooling1D, Conv1D, Flatten, Concatenate
 from keras.models import Model
-
+from keras import metrics
 from magpie.config import SAMPLE_LENGTH
 
 
@@ -47,7 +47,7 @@ def cnn(embedding_size, output_length):
     model.compile(
         loss='binary_crossentropy',
         optimizer='adam',
-        metrics=['accuracy'],
+        metrics=[metrics.categorical_accuracy],
     )
 
     return model
@@ -76,7 +76,7 @@ def rnn(embedding_size, output_length):
     model.compile(
         loss='binary_crossentropy',
         optimizer='adam',
-        metrics=['accuracy'],
+        metrics=[metrics.categorical_accuracy],
     )
 
     return model
