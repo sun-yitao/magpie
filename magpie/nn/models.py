@@ -1,5 +1,5 @@
 from keras.layers import Input, Dense, GRU, Dropout, BatchNormalization, \
-                         MaxPooling1D, Conv1D, Flatten, Concatenate
+                         MaxPooling1D, Conv1D, Flatten, Concatenate, PReLU
 from keras.models import Model
 from keras import metrics
 from magpie.config import SAMPLE_LENGTH
@@ -30,15 +30,15 @@ def cnn(embedding_size, output_length):
             NB_FILTER,
             ngram_length,
             kernel_initializer='he_uniform',
-            activation='relu',
+            activation=None,
         )(current_input)
-
+        activation = PReLU()(convolution)
         pool_size = SAMPLE_LENGTH - ngram_length + 1
-        pooling = MaxPooling1D(pool_size=pool_size)(convolution)
+        pooling = MaxPooling1D(pool_size=pool_size)(activation)
         conv_layers.append(pooling)
 
     merged = Concatenate()(conv_layers)
-    dropout = Dropout(0.5)(merged)
+    dropout = Dropout(0.25)(merged)
     flattened = Flatten()(dropout)
     outputs = Dense(output_length, activation='softmax')(flattened)
 
@@ -62,19 +62,18 @@ def rnn(embedding_size, output_length):
     gru = GRU(
         HIDDEN_LAYER_SIZE,
         input_shape=(SAMPLE_LENGTH, embedding_size),
-        kernel_initializer="glorot_uniform",
-        recurrent_initializer='normal',
-        activation='relu',
+        activation='tanh', recurrent_activation='hard_sigmoid', 
+        kernel_initializer='glorot_uniform', recurrent_initializer='orthogonal'
     )(inputs)
 
     batch_normalization = BatchNormalization()(gru)
     dropout = Dropout(0.1)(batch_normalization)
-    outputs = Dense(output_length, activation='sigmoid')(dropout)
+    outputs = Dense(output_length, activation='softmax')(dropout)
 
     model = Model(inputs=inputs, outputs=outputs)
 
     model.compile(
-        loss='binary_crossentropy',
+        loss='categorical_crossentropy',
         optimizer='adam',
         metrics=[metrics.categorical_accuracy],
     )
